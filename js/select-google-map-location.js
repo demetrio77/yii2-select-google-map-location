@@ -17,10 +17,12 @@
     $.fn.selectLocation = function(options) {
         var self = this;
         var map;
+        var mapCenterLat = options.mapCenterLat!=undefined ? options.mapCenterLat : 55.997778,
+            mapCenterLong = options.mapCenterLong!=undefined ? options.mapCenterLong : 37.190278;
 
         $(document).ready(function() {
             var mapOptions = {
-                center: new google.maps.LatLng(55.997778, 37.190278),
+                center: new google.maps.LatLng(mapCenterLat, mapCenterLong),
                 zoom: 12,
                 mapTypeId: google.maps.MapTypeId.ROADMAP,
                 panControl: true

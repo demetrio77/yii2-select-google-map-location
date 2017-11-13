@@ -27,7 +27,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "kalyabin\\maplocation\\": ""
+            "demetrio77\\maplocation\\": ""
         }
     },
     "minimum-stability": "stable",
