@@ -49,6 +49,21 @@ class SelectMapLocationWidget extends InputWidget
      * @var string longitude attribute name
      */
     public $attributeLongitude;
+    
+    /**
+     * @var string zip code attribute name
+     */
+    public $attributeZipcode;
+    
+    /**
+     * @var string city attribute name
+     */
+    public $attributeCity;
+    
+    /**
+     * @var string state attribute name
+     */
+    public $attributeState;
 
     /**
      * @var boolean marker draggable option
@@ -103,12 +118,17 @@ class SelectMapLocationWidget extends InputWidget
         $address = Html::getInputId($this->model, $this->attribute);
         $latitude = Html::getInputId($this->model, $this->attributeLatitude);
         $longitude = Html::getInputId($this->model, $this->attributeLongitude);
+        $zipcode = Html::getInputId($this->model, $this->attributeZipcode);
+        $state = Html::getInputId($this->model, $this->attributeState);
+        $city = Html::getInputId($this->model, $this->attributeCity);
 
         $jsOptions = ArrayHelper::merge($this->jsOptions, [
             'address'           => '#' . $address,
             'latitude'          => '#' . $latitude,
             'longitude'         => '#' . $longitude,
-            'draggable'         => $this->draggable,
+            'city'              => '#' . $city,
+            'state'             => '#' . $state,
+            'zipcode'           => '#' . $zipcode
         ]);
         // message about not founded addess
         if (!isset($jsOptions['addressNotFound'])) {

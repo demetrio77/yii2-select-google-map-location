@@ -5,7 +5,9 @@
  * - address - селектор, для указания адреса;
  * - latitude - селектор для указания широты;
  * - longitude - селектор для указания долготы;
- * - hideMarker - если определено, то не будет установлен маркер на карте при поиске локации;
+ * - zipcode - селектор для индекса
+ * - state - селектор для штат
+ * - city - селектор для города
  * - onLoadMap - если определена функциия, то она будет вызвана при инициализации карты;
  * - addressNotFound - сообщение о не найденном адресе.
  *
@@ -17,12 +19,12 @@
     $.fn.selectLocation = function(options) {
         var self = this;
         var map;
-        var mapCenterLat = options.mapCenterLat!=undefined ? options.mapCenterLat : 55.997778,
-            mapCenterLong = options.mapCenterLong!=undefined ? options.mapCenterLong : 37.190278;
-
+     // маркер найденной точки
+        var marker = null;
+        
         $(document).ready(function() {
             var mapOptions = {
-                center: new google.maps.LatLng(mapCenterLat, mapCenterLong),
+                center: new google.maps.LatLng(40.4406248, -79.9958864),
                 zoom: 12,
                 mapTypeId: google.maps.MapTypeId.ROADMAP,
                 panControl: true
@@ -31,66 +33,79 @@
 
             if (options.onLoadMap) {
                 options.onLoadMap(map);
-            }
-
-            // маркер найденной точки
-            var marker = null;
+            }            
 
             /**
-             * Создать маркер на карте
+             * Создать/переместить маркер на карте
              * Передается объект типа google.maps.LatLng
              * @param {Object} latLng
              */
-            var createMarker = function(latLng) {
+            var placeMarker = function(latLng) {
                 // удалить маркер если уже был
-                if (marker) {
-                    marker.remove();
+                if (!marker) {
+	                marker = new google.maps.Marker({
+	                    'position'          : latLng,
+	                    'map'               : map
+	                });
                 }
-                if (options.hideMarker) {
-                    // не нужно устанавливать маркер
-                    return;
+                else {
+                	marker.setPosition(latLng);                	
                 }
-                marker = new google.maps.Marker({
-                    'position'          : latLng,
-                    'map'               : map,
-                    'draggable'         : options.draggable
-                });
-
-                if(options.draggable) {
-                    google.maps.event.addListener(marker, 'dragend', function() {
-                        marker.changePosition(marker.getPosition());
-                    });
-                }
-
-                marker.remove = function() {
-                    google.maps.event.clearInstanceListeners(this);
-                    this.setMap(null);
-                };
-
-                marker.changePosition = function(pos) {
-                    var geocoder = new google.maps.Geocoder();
-                    geocoder.geocode(
-                        {
-                            latLng: pos
-                        },
-                        function(results, status) {
-                            if (status == google.maps.GeocoderStatus.OK) {
-                                setLatLngAttributes(results[0].geometry.location);
-                            }
-
-                            return false;
-                        }
-                    );
-                }
+                map.setCenter(latLng);
             };
+            
+            var getPlace = function(latLng) {
+                var geocoder = new google.maps.Geocoder();
+                geocoder.geocode(
+                    {
+                        latLng: latLng
+                    },
+                    function(results, status) {
+                    	if (status == google.maps.GeocoderStatus.OK) {
+                            setAttributes(results[0]);
+                        }
+
+                        return false;
+                    }
+                );
+            }
 
             /**
              * Установить координаты точки
              * @param {Object} point объект типа google.maps.LatLng
              */
-            var setLatLngAttributes = function(point) {
-                $(options.latitude).val(point.lat());
-                $(options.longitude).val(point.lng());
+            var setAttributes = function(point) {
+                console.log(point);
+                console.log(self);
+                
+                if (!point.geometry.location){
+                	return ;
+                }
+                
+                $(options.latitude).val(point.geometry.location.lat());
+                $(options.longitude).val(point.geometry.location.lng());                
+                
+                if (! point.address_components){
+                	return ;
+                }
+                
+                $(options.address).val(point.formatted_address);
+                
+                for (c in point.address_components){
+                	var component = point.address_components[c];
+                	var type = component.types[0];
+                	switch(type){
+                		case "postal_code":
+                			$(options.zipcode).val( component.long_name );
+                	    break;
+                		case 'locality':
+                			$(options.city).val( component.long_name );
+                	    break;
+                		case "administrative_area_level_1":
+                			$(options.state).val( component.long_name );
+                	    break;
+                	}
+                }
             };
 
             /**
@@ -98,7 +113,7 @@
              * @param {Object} item
              */
             var selectLocation = function(item) {
-                if (!item.geometry) {
+            	if (!item.geometry) {
                     return;
                 }
                 var bounds = item.geometry.viewport ? item.geometry.viewport : item.geometry.bounds;
@@ -116,8 +131,8 @@
                 }
                 if (center) {
                     map.setCenter(center);
-                    createMarker(center);
-                    setLatLngAttributes(center);
+                    placeMarker(center);
+                    setAttributes(item);
                 }
             };
 
@@ -144,6 +159,11 @@
                 }
                 selectLocation(place);
             });
+            
+            map.addListener('click', function(e) {
+            	placeMarker(e.latLng);
+            	getPlace(e.latLng);
+            });
 
             var defaults = {
                 'lat'       : $(options.latitude).val(),
@@ -152,8 +172,7 @@
             if (defaults.lat && defaults.lng) {
                 var center = new google.maps.LatLng(defaults.lat, defaults.lng);
                 map.setCenter(center);
-                createMarker(center);
-                setLatLngAttributes(center);
+                placeMarker(center);
             }
         });
     };
