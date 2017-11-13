@@ -1,5 +1,5 @@
 {
-    "name": "kalyabin/yii2-select-google-map-location",
+    "name": "demetrio77/yii2-select-google-map-location",
     "description": "Yii2 widget to select location at map and choose map coordinates",
     "type": "package",
     "keywords": [
@@ -19,6 +19,10 @@
         {
             "name": "Kirill Arutyunov",
             "email": "kirill@arutyunov.me"
+        },
+        {
+            "name": "Dmitry Karpov",
+            "email": "demetrio77@gmail.com"
         }
     ],
     "autoload": {
